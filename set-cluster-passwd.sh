@@ -1,4 +1,13 @@
 #!/bin/sh
+#
+#
+# Note: If you’re asked for a password during the execution, the machine that
+# is being contacted might not have been started properly.
+# To check it, log in to the machine through the CloudLab shell and make
+# sure it is running and reload it if it is not running properly
+# (from the topology/list view).
+#
+#
 
 MSTR='ctl'
 SLVPREFX='cp'
