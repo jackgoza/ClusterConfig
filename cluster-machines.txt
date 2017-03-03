@@ -1,0 +1,4 @@
+ms1145.utah.cloudlab.us
+ms1106.utah.cloudlab.us
+ms1116.utah.cloudlab.us
+ms1107.utah.cloudlab.us
