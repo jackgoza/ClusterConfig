@@ -3,7 +3,7 @@
 #
 #          FILE:  instance-setup.sh
 #
-#         USAGE:  ./instance-setup.sh -p <password> [-c num_slaves]
+#         USAGE:  sudo ./instance-setup.sh -p <password> [-c num_slaves]
 #
 #   DESCRIPTION:
 #                 This script is intended to setup the machine for first time
