@@ -52,7 +52,7 @@
 #  REQUIREMENTS:  ---
 #          BUGS:  ---
 #         NOTES:
-#                 Software versions:
+#                 Tested software versions:
 #                   scala-2.11.8
 #                   hadoop-2.7.3
 #                   spark-2.0.2 for hadoop2.7
@@ -129,7 +129,16 @@ SLVPREFX='cp'
 MSTR='ctl'
 LRGDIR=/dev/data
 
-echo "SET UP STARTED.."
+SCALA_VER=2.11.8
+HADOOP_VER=2.7.3
+SPARK_VER=2.0.2
+SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
+echo "SOFTWARE VERSIONS:"
+echo " SCALA: "$SCALA_VER
+echo "HADOOP: "$HADOOP_VER
+echo " SPARK: "$SPARK_VER
+
+echo "\nSET UP STARTED.."
 
 echo "UPDATING REPOSITORIES AND PACKAGES.."
 sudo apt-get update  --yes      # Fetches the list of available updates
@@ -179,25 +188,25 @@ if [[ ($CUSTOM) ]] ; then
     echo "INSTALLING SCALA.."
     #INSTALL SCALA
     sudo apt-get remove scala-library scala --yes
-    wget http://www.scala-lang.org/files/archive/scala-2.11.8.deb
-    sudo dpkg -i scala-2.11.8.deb
+    wget http://www.scala-lang.org/files/archive/scala-$SCALA_VER.deb
+    sudo dpkg -i scala-$SCALA_VER.deb
     sudo apt-get update --yes
     sudo apt-get install scala --yes
 
     echo "DOWNLOADING HADOOP.."
-    HADOOP_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz"
+    HADOOP_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"hadoop/common/hadoop-$HADOOP_VER/hadoop-$HADOOP_VER.tar.gz"
     curl -O $HADOOP_URL
 
     echo "DOWNLOADING SPARK.."
-    SPARK_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"spark/spark-2.0.2/spark-2.0.2-bin-hadoop2.7.tgz"
+    SPARK_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"spark/spark-$SPARK_VER/spark-$SPARK_VER-bin-hadoop$SPARK_HDP_VER.tgz"
     curl -O $SPARK_URL
 
-    sudo tar xzf hadoop-2.7.3.tar.gz -C /usr/local
-    sudo tar zxvf spark-* -C /usr/local
+    sudo tar xzf hadoop-$HADOOP_VER.tar.gz -C /usr/local
+    sudo tar xzf spark-$SPARK_VER.tar.gz -C /usr/local
 
     cd /usr/local
-    sudo mv hadoop-2.7.3 hadoop
-    sudo mv spark-* spark
+    sudo mv hadoop-$HADOOP_VER hadoop
+    sudo mv spark-$SPARK_VER spark
     sudo mkdir -p $LRGDIR/hadoop
 
     sudo chown -R $USER:$USRGRP  /usr/local/hadoop
@@ -218,8 +227,8 @@ if [[ ($CUSTOM) ]] ; then
         echo "
         #spark.master                spark://$MSTRNAME:7077
         spark.driver.memory          50g
-        spark.executor.memory		 50g
-        spark.executor.cores		 1
+        spark.executor.memory        50g
+        #spark.executor.cores        1
         #spark.submit.deployMode     cluster
         # spark.eventLog.dir         hdfs://$MSTR:8021/sparkEvntLg
         " > /usr/local/spark/conf/spark-defaults.conf
@@ -349,8 +358,8 @@ if [[ ($CUSTOM) ]] ; then
     cp spark/conf/spark-env.sh.template spark/conf/spark-env.sh
 
     echo 'export JAVA_HOME=/usr' >> spark/conf/spark-env.sh
-    echo "export SPARK_PUBLIC_DNS=$MSTRNAME" >> spark/conf/spark-env.sh
-    echo 'export SPARK_WORKER_CORES=1' >> spark/conf/spark-env.sh
+    echo "export SPARK_PUBLIC_DNS=$HSTNAME" >> spark/conf/spark-env.sh
+    #echo 'export SPARK_WORKER_CORES=1' >> spark/conf/spark-env.sh
     source $HOME/.bashrc
 
     if [[  $HSTNAME == *"$MSTR"* ]]; then
