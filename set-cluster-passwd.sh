@@ -49,22 +49,24 @@ echo "generate and copy rsa key for master to slaves"
 ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     # copy to local user
     ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
-	ssh-keyscan -H $MSTR >> ~/.ssh/known_hosts
+    ssh-keyscan -H $MSTR >> ~/.ssh/known_hosts
     sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
 
     # copy to localhost
-	ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
+    ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
     sshpass -p $PASS ssh-copy-id $USRNM@0.0.0.0
+    
+    # make all hosts (including slaves) known
+    ssh-keyscan -f /etc/hosts >> ~/.ssh/known_hosts
 
     # copy to slaves
-	s=1
-	while [[ \$s -le $NUMSLVS ]];
-	do
-		ssh-keyscan -H $SLVPREFX-\$s >> ~/.ssh/known_hosts
-		sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
-		s=\$((s+1))
-	done
-	chmod 0600 ~/.ssh/authorized_keys
+    s=1
+    while [[ \$s -le $NUMSLVS ]];
+    do
+	sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
+	s=\$((s+1))
+    done
+    chmod 0600 ~/.ssh/authorized_keys
 " < /dev/null
 echo "Done."
 
