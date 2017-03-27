@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # Note: If you’re asked for a password during the execution, the machine that

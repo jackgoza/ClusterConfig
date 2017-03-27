@@ -138,7 +138,7 @@ echo " SCALA: "$SCALA_VER
 echo "HADOOP: "$HADOOP_VER
 echo " SPARK: "$SPARK_VER
 
-echo "\nSET UP STARTED.."
+echo -e "\nSET UP STARTED.."
 
 echo "UPDATING REPOSITORIES AND PACKAGES.."
 sudo apt-get update  --yes      # Fetches the list of available updates
@@ -176,7 +176,7 @@ if [[ ($CUSTOM) ]] ; then
     echo 'set hlsearch' >> ~/.vimrc
     echo 'set nonumber' >> ~/.vimrc
     echo 'set shiftwidth=4' >> ~/.vimrc
-    echo 'set expandtab' >> ~/.vimrc
+    #echo 'set expandtab' >> ~/.vimrc
     echo 'set tabstop=4' >> ~/.vimrc
     echo 'set ignorecase' >> ~/.vimrc
     echo 'set backspace=2' >> ~/.vimrc
@@ -201,12 +201,12 @@ if [[ ($CUSTOM) ]] ; then
     SPARK_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"spark/spark-$SPARK_VER/spark-$SPARK_VER-bin-hadoop$SPARK_HDP_VER.tgz"
     curl -O $SPARK_URL
 
-    sudo tar xzf hadoop-$HADOOP_VER.tar.gz -C /usr/local
-    sudo tar xzf spark-$SPARK_VER.tar.gz -C /usr/local
+    sudo tar xzf hadoop-$HADOOP_VER*gz -C /usr/local
+    sudo tar xzf spark-$SPARK_VER*gz -C /usr/local
 
     cd /usr/local
-    sudo mv hadoop-$HADOOP_VER hadoop
-    sudo mv spark-$SPARK_VER spark
+    sudo mv hadoop-$HADOOP_VER* hadoop
+    sudo mv spark-$SPARK_VER* spark
     sudo mkdir -p $LRGDIR/hadoop
 
     sudo chown -R $USER:$USRGRP  /usr/local/hadoop
@@ -219,8 +219,8 @@ if [[ ($CUSTOM) ]] ; then
     HSTNAME=$(cat /etc/hostname)
     if [[  $HSTNAME == *"$MSTR"* ]]; then
         echo "Setting up master.."
-        sudo apt-get install libfreetype6-dev libpng-dev --yes
-        sudo pip install matplotlib
+        #sudo apt-get install libfreetype6-dev libpng-dev --yes
+        #sudo pip install matplotlib
 
         MSTRNAME=$HSTNAME
         touch /usr/local/spark/conf/slaves
