@@ -58,7 +58,7 @@
 #                   spark-2.0.2 for hadoop2.7
 #
 #                 Assuming the default java version will be compatible.
-#                 To replace default java uncomment lines 134-138.
+#                 To replace default java uncomment lines below 'INSTALL JAVA 8'
 #
 #
 #        AUTHOR:  Anas Katib, anaskatib@mail.umkc.edu
@@ -87,19 +87,34 @@
 
 
 scriptname=$0
+NSLVS=$4
+USRGRP=$(groups | cut -d ' ' -f1)
+SLVPREFX='cp'
+MSTR='ctl'
+LRGDIR=/dev/data
+NUMREP=1
+SCALA_VER=2.11.8
+HADOOP_VER=2.7.3
+SPARK_VER=2.0.2
+SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
 
 function usage {
     echo "USAGE: sudo $scriptname -p <password> [-c num_slaves]"
     echo "  -p <password>       password for the current user"
     echo "  -c num_slaves       run the customized section"
     echo "  -h                  print this message"
-    echo ""
-    echo "Please read the notes in the script file!"
-
+    echo -e "\nWARN:"
+    echo "- Using $LRGDIR to store data. Directory could be volatile."
+    echo "  Change it if machine reboot is anticipated."
+    echo -e "\nINFO:"
+    echo "- Replication Factor: "$NUMREP
+    echo "- Software Versions: "
+    echo "              Scala: "$SCALA_VER
+    echo "             Hadoop: "$HADOOP_VER
+    echo "              Spark: "$SPARK_VER
+    echo "- Please read the notes in the script file!"
     exit 1
 }
-
-
 
 function aparse {
 while [[ $# > 0 ]] ; do
@@ -123,22 +138,27 @@ fi
 
 aparse "$@"
 set -e
-NSLVS=$4
-USRGRP=$(groups | cut -d ' ' -f1)
-SLVPREFX='cp'
-MSTR='ctl'
-LRGDIR=/dev/data
-
-SCALA_VER=2.11.8
-HADOOP_VER=2.7.3
-SPARK_VER=2.0.2
-SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
-echo "SOFTWARE VERSIONS:"
-echo " SCALA: "$SCALA_VER
-echo "HADOOP: "$HADOOP_VER
-echo " SPARK: "$SPARK_VER
 
 echo -e "\nSET UP STARTED.."
+
+if [ ! -f  /etc/hostname ]; then
+   echo "ERROR:"
+   echo "  The file \"/etc/hostname\" was not found!"
+   echo "  Possible machine boot error. Reload the machine then assign"
+   echo "  a hostname in /etc/hostname."
+   echo "  Example: echo \"ctl.test1.project.utah.cloudlab.us\" > /etc/hostname"
+   exit 1
+fi
+
+HSTNAME=$(cat /etc/hostname)
+HSTNAME_LEN=${#HSTNAME}
+
+if [ "$HSTNAME_LEN" -eq "0" ]; then
+   echo "ERROR:"
+   echo "  No hostname defined in \"/etc/hostname\". Set a hostname.";
+   echo "  Example: echo \"cp-2.test1.project.utah.cloudlab.us\" > /etc/hostname"
+   exit 1;
+fi
 
 echo "UPDATING REPOSITORIES AND PACKAGES.."
 sudo apt-get update  --yes      # Fetches the list of available updates
@@ -149,8 +169,6 @@ echo "INSTALLING OTHERS.."
 sudo apt-get install default-jre --yes
 sudo apt-get install default-jdk --yes
 sudo apt-get install vim --yes
-#sudo apt-get install openjdk-8-jre --yes
-#sudo apt-get install openjdk-8-jdk --yes
 
 sudo apt-get -f install
 sudo apt-get install unzip --yes
@@ -159,7 +177,9 @@ sudo apt-get install maven --yes
 sudo apt-get install jq --yes
 
 # sudo apt-get update --yes
-# to replace java-default
+
+# INSTALL JAVA 8
+#   to replace java-default
 #   sudo apt-get install openjdk-8-jdk --yes
 #   sudo apt-get install openjdk-8-jre --yes
 #   sudo apt-get autoremove --yes
@@ -216,7 +236,6 @@ if [[ ($CUSTOM) ]] ; then
     ln -s $LRGDIR/hadoop /usr/local/hadoop/hadoop_data
     mkdir -p /usr/local/hadoop/hadoop_data/hdfs/tmp
 
-    HSTNAME=$(cat /etc/hostname)
     if [[  $HSTNAME == *"$MSTR"* ]]; then
         echo "Setting up master.."
         #sudo apt-get install libfreetype6-dev libpng-dev --yes
@@ -249,7 +268,7 @@ if [[ ($CUSTOM) ]] ; then
         <configuration>
             <property>
               <name>dfs.replication</name>
-              <value>3</value>
+              <value>'$NUMREP'</value>
             </property>
             <property>
               <name>dfs.namenode.name.dir</name>
@@ -269,7 +288,7 @@ if [[ ($CUSTOM) ]] ; then
         <configuration>
             <property>
               <name>dfs.replication</name>
-              <value>3</value>
+              <value>'$NUMREP'</value>
             </property>
             <property>
                   <name>dfs.datanode.data.dir</name>
