@@ -1,7 +1,7 @@
 # ClusterConfig
 
 Prerequisite: upload your public key to CloudLab.
-<a href="https://cdn.rawgit.com/anask/ClusterConfig/00037134/html/cloudlab-ssh-keys-setup.html"> See tutorial.</a>
+<a href="https://cdn.rawgit.com/anask/ClusterConfig/0cf7f80a/html/cloudlab-ssh-keys-setup.html"> See tutorial.</a>
 
 Set up one password and ssh keys for a cluster of machines:
 ./set-cluster-passwd.sh
