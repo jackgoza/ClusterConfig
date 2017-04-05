@@ -385,13 +385,19 @@ if [[ ($CUSTOM) ]] ; then
     	ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
         sshpass -p $PASSWORD ssh-copy-id $USER@0.0.0.0
 
-        echo "INFO: log out and back in, then issue:"
         # start hadoop and spark cluster
+        echo "INFO: After all nodes are ready, execute the following commands:"
         echo '  hdfs namenode -format'
         echo '  start-dfs.sh'
         echo '  start-yarn.sh'
         echo '  $SPARK_HOME/sbin/start-all.sh'
+        echo "INFO: if commands are not found, log out and back in, then issue them."
+        echo -e "\nWeb UI Ports:"
+        echo    '	Hadoop PUB.IP.ADDR.ESS:50070'
+        echo    '	Yarn   PUB.IP.ADDR.ESS:8088'
+        echo    '	Spark  PUB.IP.ADDR.ESS:8080 (or 8081, 8082..)'
     fi
+	source ~/.bashrc
     jps
 fi
 
