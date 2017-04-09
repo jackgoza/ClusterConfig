@@ -390,6 +390,9 @@ if [[ ($CUSTOM) ]] ; then
     #echo 'export SPARK_WORKER_CORES=1' >> spark/conf/spark-env.sh
 
     if [[  $HSTNAME == *"$MSTR"* ]]; then
+        ADD_LINE=$(grep -i $(hostname) /etc/hosts)
+        ADDRS=($ADD_LINE)
+        PUB_ADD=${ADDRS[-1]}
         # Generate README file
         README="CLSTR_README.txt"
         touch $HOME/$README
@@ -400,9 +403,9 @@ if [[ ($CUSTOM) ]] ; then
         echo '  start-yarn.sh' >> $HOME/$README
         echo '  $SPARK_HOME/sbin/start-all.sh' >> $HOME/$README
         echo -e "\nINFO: WEB UI PORTS:" >> $HOME/$README
-        echo    '  Hadoop PUB.IP.ADDR.ESS:50070' >> $HOME/$README
-        echo    '  Yarn   PUB.IP.ADDR.ESS:8088' >> $HOME/$README
-        echo    '  Spark  PUB.IP.ADDR.ESS:8080 (or 8081, 8082..)' >> $HOME/$README
+        echo    "  Hadoop $PUB_ADD:50070" >> $HOME/$README
+        echo    "  Yarn   $PUB_ADD:8088" >> $HOME/$README
+        echo    "  Spark  $PUB_ADD:8080 (or 8081, 8082..)" >> $HOME/$README
         echo -e "\nEXECUTE 'jps' TO CHECK WHICH JVM PROCESSES ARE RUNNING.\n" >> $HOME/$README
         cat  $HOME/$README
         echo "TO PRINT THIS MESSAGE AGAIN, EXECUTE: cat $HOME/$README"
