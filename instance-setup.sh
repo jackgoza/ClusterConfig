@@ -252,14 +252,14 @@ if [[ ($CUSTOM) ]] ; then
 
         MSTRNAME=$HSTNAME
         touch /usr/local/spark/conf/slaves
-        echo "
+        #echo "
         #spark.master                spark://$MSTRNAME:7077
-        spark.driver.memory          50g
-        spark.executor.memory        50g
+        #spark.driver.memory          50g
+        #spark.executor.memory        50g
         #spark.executor.cores        1
         #spark.submit.deployMode     cluster
         # spark.eventLog.dir         hdfs://$MSTR:8021/sparkEvntLg
-        " > /usr/local/spark/conf/spark-defaults.conf
+        #" > /usr/local/spark/conf/spark-defaults.conf
 
         mkdir /usr/local/hadoop/hadoop_data/hdfs/namenode
         echo $MSTRNAME >  /usr/local/hadoop/etc/hadoop/masters
