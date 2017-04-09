@@ -3,7 +3,7 @@
 #
 #          FILE:  instance-setup.sh
 #
-#         USAGE:  sudo ./instance-setup.sh -p <password> [-c num_slaves]
+#         USAGE:  ./instance-setup.sh -p <password> [-c num_slaves]
 #
 #   DESCRIPTION:
 #                 This script is intended to setup the machine for first time
@@ -92,14 +92,14 @@ USRGRP=$(groups | cut -d ' ' -f1)
 SLVPREFX='cp'
 MSTR='ctl'
 LRGDIR=/dev/data
-NUMREP=1
+NUMREP=3
 SCALA_VER=2.11.8
 HADOOP_VER=2.7.3
 SPARK_VER=2.0.2
 SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
 
 function usage {
-    echo "USAGE: sudo $scriptname -p <password> [-c num_slaves]"
+    echo "USAGE: $scriptname -p <password> [-c num_slaves]"
     echo "  -p <password>       password for the current user"
     echo "  -c num_slaves       run the customized section"
     echo "  -h                  print this message"
@@ -135,6 +135,13 @@ if [[ ($# -eq 0) || ( "$1" == "-h")  ]] ; then
     usage
     exit 1
 fi
+
+sudo echo -n "CHECKING SUDO PRIVILEGES.."
+if [[  "$USER" == "root" ]]; then
+    echo -e "\nError: Do not run script via sudo, but you must have sudo privileges."
+    exit 1
+fi
+echo "OK"
 
 aparse "$@"
 set -e
@@ -193,6 +200,7 @@ if [[ ($CUSTOM) ]] ; then
 
     # SET UP VIM CONFIGURATION
     echo "SETTING UP VIM.."
+    sudo chown -R $USER:$USRGRP  ~/.vimrc
     echo 'set hlsearch' >> ~/.vimrc
     echo 'set nonumber' >> ~/.vimrc
     echo 'set shiftwidth=4' >> ~/.vimrc
@@ -237,7 +245,7 @@ if [[ ($CUSTOM) ]] ; then
     mkdir -p /usr/local/hadoop/hadoop_data/hdfs/tmp
 
     if [[  $HSTNAME == *"$MSTR"* ]]; then
-        echo "Setting up master.."
+        echo "SETTING UP MASTER.."
         #sudo apt-get install libfreetype6-dev libpng-dev --yes
         #sudo pip install matplotlib
 
@@ -256,11 +264,11 @@ if [[ ($CUSTOM) ]] ; then
         echo $MSTRNAME >  /usr/local/hadoop/etc/hadoop/masters
         echo -n > /usr/local/hadoop/etc/hadoop/slaves
     	snum=1
-	    while [[ $snum -le $NSLVS ]];
+    	while [[ $snum -le $NSLVS ]];
     	do
 	        echo $SLVPREFX-$snum >> /usr/local/hadoop/etc/hadoop/slaves
 	        echo $SLVPREFX-$snum >>	/usr/local/spark/conf/slaves
-		    snum=$((snum+1))
+	        snum=$((snum+1))
     	done
     	# hdfs-site.xml
     	echo '<?xml version="1.0" encoding="UTF-8"?>
@@ -281,7 +289,7 @@ if [[ ($CUSTOM) ]] ; then
         </configuration>
     	' > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
     else
-        echo "Setting up slave.."
+        echo "SETTING UP SLAVE.."
         mkdir /usr/local/hadoop/hadoop_data/hdfs/datanode
     	echo '<?xml version="1.0" encoding="UTF-8"?>
         <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
@@ -379,26 +387,28 @@ if [[ ($CUSTOM) ]] ; then
     echo 'export JAVA_HOME=/usr' >> spark/conf/spark-env.sh
     echo "export SPARK_PUBLIC_DNS=$HSTNAME" >> spark/conf/spark-env.sh
     #echo 'export SPARK_WORKER_CORES=1' >> spark/conf/spark-env.sh
-    source $HOME/.bashrc
 
     if [[  $HSTNAME == *"$MSTR"* ]]; then
-    	ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
-        sshpass -p $PASSWORD ssh-copy-id $USER@0.0.0.0
-
-        # start hadoop and spark cluster
-        echo "INFO: After all nodes are ready, execute the following commands:"
-        echo '  hdfs namenode -format'
-        echo '  start-dfs.sh'
-        echo '  start-yarn.sh'
-        echo '  $SPARK_HOME/sbin/start-all.sh'
-        echo "INFO: if commands are not found, log out and back in, then issue them."
-        echo -e "\nWeb UI Ports:"
-        echo    '	Hadoop PUB.IP.ADDR.ESS:50070'
-        echo    '	Yarn   PUB.IP.ADDR.ESS:8088'
-        echo    '	Spark  PUB.IP.ADDR.ESS:8080 (or 8081, 8082..)'
+        # Generate README file
+        README="CLSTR_README.txt"
+        touch $HOME/$README
+        echo -e "\nINFO: AFTER ALL NODES ARE READY, EXECUTE THE COMMANDS BELOW ON THE MASTER ONLY." >> $HOME/$README
+		#echo -e "If the commands are not found, log out and back in, then issue them.\n" >> $HOME/$README
+		#echo "  source ~/.bashrc" >> $HOME/$README
+		echo "  source $HOME/.bashrc"
+		echo '  hdfs namenode -format' >> $HOME/$README
+        echo '  start-dfs.sh' >> $HOME/$README
+        echo '  start-yarn.sh' >> $HOME/$README
+        echo '  $SPARK_HOME/sbin/start-all.sh' >> $HOME/$README
+        echo -e "\nINFO: WEB UI PORTS:" >> $HOME/$README
+        echo    '  Hadoop PUB.IP.ADDR.ESS:50070' >> $HOME/$README
+        echo    '  Yarn   PUB.IP.ADDR.ESS:8088' >> $HOME/$README
+        echo    '  Spark  PUB.IP.ADDR.ESS:8080 (or 8081, 8082..)' >> $HOME/$README
+        echo -e "\nEXECUTE 'jps' TO CHECK WHICH JVM PROCESSES ARE RUNNING.\n" >> $HOME/$README
+        cat  $HOME/$README
+        echo "TO PRINT THIS MESSAGE AGAIN, EXECUTE: cat $HOME/$README"
     fi
-	source ~/.bashrc
-    jps
+
 fi
 
 echo "SETUP FINISHED."

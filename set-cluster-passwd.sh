@@ -108,9 +108,13 @@ ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     ssh-keyscan -H $MSTR >> ~/.ssh/known_hosts
     sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
 
-    # copy to localhost
+    # copy to 0.0.0.0 and localhost
     ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
     sshpass -p $PASS ssh-copy-id $USRNM@0.0.0.0
+
+	ssh-keyscan -H localhost >> ~/.ssh/known_hosts
+    sshpass -p $PASS ssh-copy-id $USRNM@localhost
+
 
     # make all hosts (including slaves) known
     ssh-keyscan -f /etc/hosts >> ~/.ssh/known_hosts
