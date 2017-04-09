@@ -393,9 +393,7 @@ if [[ ($CUSTOM) ]] ; then
         README="CLSTR_README.txt"
         touch $HOME/$README
         echo -e "\nINFO: AFTER ALL NODES ARE READY, EXECUTE THE COMMANDS BELOW ON THE MASTER ONLY." >> $HOME/$README
-		#echo -e "If the commands are not found, log out and back in, then issue them.\n" >> $HOME/$README
-		#echo "  source ~/.bashrc" >> $HOME/$README
-		echo "  source $HOME/.bashrc"
+		echo "  source $HOME/.bashrc"  >> $HOME/$README
 		echo '  hdfs namenode -format' >> $HOME/$README
         echo '  start-dfs.sh' >> $HOME/$README
         echo '  start-yarn.sh' >> $HOME/$README
