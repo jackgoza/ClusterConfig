@@ -200,6 +200,7 @@ if [[ ($CUSTOM) ]] ; then
 
     # SET UP VIM CONFIGURATION
     echo "SETTING UP VIM.."
+    sudo touch ~/.vimrc
     sudo chown -R $USER:$USRGRP  ~/.vimrc
     echo 'set hlsearch' >> ~/.vimrc
     echo 'set nonumber' >> ~/.vimrc
