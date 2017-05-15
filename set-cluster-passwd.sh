@@ -45,8 +45,8 @@ do
   # copy setup file
   scp -o "StrictHostKeyChecking no" -i $KEY  instance-setup.sh $USRNM@$ADDR:~/
 
-  # change password and make setup file executable
-  ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$ADDR "echo  -e '$PASS\n$PASS' | sudo passwd $USRNM && sudo chmod +x ~/instance-setup.sh && exit" < /dev/null
+  # change password, make setup file executable, enable ssh password, and restart ssh
+  ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$ADDR "echo  -e '$PASS\n$PASS' | sudo passwd $USRNM && sudo chmod +x ~/instance-setup.sh && sudo sed -i -- 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config && sudo service sshd restart && exit" < /dev/null
 
   # check if machine has a hostname
   CHECK_HSTNM=$(ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$ADDR '
@@ -106,14 +106,14 @@ ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     # copy to local user
     ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
     ssh-keyscan -H $MSTR >> ~/.ssh/known_hosts
-    sudo sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
+    sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
 
     # copy to 0.0.0.0 and localhost
     ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
-    sudo sshpass -p $PASS ssh-copy-id $USRNM@0.0.0.0
+    sshpass -p $PASS ssh-copy-id $USRNM@0.0.0.0
 
     ssh-keyscan -H localhost >> ~/.ssh/known_hosts
-    sudo sshpass -p $PASS ssh-copy-id $USRNM@localhost
+    sshpass -p $PASS ssh-copy-id $USRNM@localhost
 
 
     # make all hosts (including slaves) known
@@ -123,7 +123,7 @@ ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     s=1
     while [[ \$s -le $NUMSLVS ]];
     do
-	sudo sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
+	sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
 	s=\$((s+1))
     done
     chmod 0600 ~/.ssh/authorized_keys
