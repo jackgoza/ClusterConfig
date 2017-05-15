@@ -106,14 +106,14 @@ ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     # copy to local user
     ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
     ssh-keyscan -H $MSTR >> ~/.ssh/known_hosts
-    sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
+    sudo sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
 
     # copy to 0.0.0.0 and localhost
     ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
-    sshpass -p $PASS ssh-copy-id $USRNM@0.0.0.0
+    sudo sshpass -p $PASS ssh-copy-id $USRNM@0.0.0.0
 
-	ssh-keyscan -H localhost >> ~/.ssh/known_hosts
-    sshpass -p $PASS ssh-copy-id $USRNM@localhost
+    ssh-keyscan -H localhost >> ~/.ssh/known_hosts
+    sudo sshpass -p $PASS ssh-copy-id $USRNM@localhost
 
 
     # make all hosts (including slaves) known
@@ -123,7 +123,7 @@ ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     s=1
     while [[ \$s -le $NUMSLVS ]];
     do
-	sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
+	sudo sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
 	s=\$((s+1))
     done
     chmod 0600 ~/.ssh/authorized_keys
