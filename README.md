@@ -13,6 +13,8 @@ Set up one password and ssh keys for a cluster of machines:
 
 Set up a Hadoop and Spark cluster on these machines:
 Execute ./instance-setup.sh on every machine.
+ or
+Execute ./run-instance-setup.sh from your local machine.
 
 Then follow the last notes printed on the master (or in CLSTR_README.txt).
 
