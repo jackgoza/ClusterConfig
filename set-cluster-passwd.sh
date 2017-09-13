@@ -13,10 +13,10 @@ MSTR='ctl'
 SLVPREFX='cp'
 
 
-if [ "$#" -ne 5 ]; then
+if [ "$#" -lt 5 ]; then
   echo ""
-  echo '      Usage: ./set-cluster-passwd.sh <cluster_addresses> <username> <password> <num_slaves> <private_key>'
-  echo -e "    Example: ./set-cluster-passwd.sh cluster-machines.txt anask myPa$$ 15 /Users/anask/.ssh/cloud_lab\n"
+  echo '      Usage: ./set-cluster-passwd.sh <cluster_addresses> <username> <password> <num_slaves> <private_key> [verbose: 0,1]'
+  echo -e "    Example: ./set-cluster-passwd.sh cluster-machines.txt anask myPa$$ 15 /Users/anask/.ssh/cloud_lab 0\n"
   echo "      Notes: - first line in <cluster-addresses> contains master node address."
   echo -e "             - $0 is using hard-coded names ($MSTR, $SLVPREFX).\n"
   exit 1
@@ -33,14 +33,30 @@ MSTRADD=address
 NO_HSTFILE=()
 NO_HSTNM=()
 
-echo "Setting cluster password.."
+verbose=$6
+
+exec 3>&1
+exec 4>&2
+
+if ((verbose)); then
+  echo ""
+else
+  exec 1>/dev/null
+  exec 2>/dev/null
+fi
+
+echo "Setting cluster password.." 1>&3 2>&4
 while read ADDR
 do
-  echo "Setting up machine: $ADDR"
+
   if [ "$M" -eq 0 ]; then
-    ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$ADDR "export DEBIAN_FRONTEND='noninteractive' && sudo apt-get install sshpass --yes > /dev/null && exit" < /dev/null
     MSTRADD="$ADDR"
+    echo "Master address: "$MSTRADD 1>&3 2>&4
   fi
+  echo "Setting up machine: $ADDR" 1>&3 2>&4
+
+  # install sshpass
+  ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$ADDR "export DEBIAN_FRONTEND='noninteractive' && sudo apt-get install sshpass --yes > /dev/null && exit" < /dev/null
 
   # copy setup file
   scp -o "StrictHostKeyChecking no" -i $KEY  instance-setup.sh $USRNM@$ADDR:~/
@@ -78,22 +94,22 @@ done <<< "$(cat $MLIST)"
 echo ""
 EXT=0
 if [ "${#NO_HSTFILE[@]}" -ne "0" ]; then
-   echo "ERORR:"
-   echo "  The file \"/etc/hostname\" was not found in the machine(s) below."
-   echo "  Possible machine boot error. Reload the machine(s) then assign"
-   echo "  a hostname in /etc/hostname."
-   echo -e "  Example: echo \"cp-1.test1.project.utah.cloudlab.us\" > /etc/hostname\n"
-   printf '  %s\n' "${NO_HSTFILE[@]}"
-   echo ""
+   echo "ERORR:" 1>&3 2>&4
+   echo "  The file \"/etc/hostname\" was not found in the machine(s) below." 1>&3 2>&4
+   echo "  Possible machine boot error. Reload the machine(s) then assign" 1>&3 2>&4
+   echo "  a hostname in /etc/hostname." 1>&3 2>&4
+   echo -e "  Example: echo \"cp-1.test1.project.utah.cloudlab.us\" > /etc/hostname\n" 1>&3 2>&4
+   printf '  %s\n' "${NO_HSTFILE[@]}" 1>&3 2>&4
+   echo "" 1>&3 2>&4
    EXT=1
 fi
 if [ "${#NO_HSTNM[@]}" -ne "0" ]; then
-   echo "ERROR:"
-   echo "  No hostname defined in \"/etc/hostname\" in the machine(s) below."
-   echo "  Set a hostname.";
-   echo -e "  Example: echo \"ctl.test1.project.utah.cloudlab.us\" > /etc/hostname\n"
-   printf '  %s\n' "${NO_HSTNM[@]}"
-   echo ""
+   echo "ERROR:" 1>&3 2>&4
+   echo "  No hostname defined in \"/etc/hostname\" in the machine(s) below." 1>&3 2>&4
+   echo "  Set a hostname."; 1>&3 2>&4
+   echo -e "  Example: echo \"ctl.test1.project.utah.cloudlab.us\" > /etc/hostname\n" 1>&3 2>&4
+   printf '  %s\n' "${NO_HSTNM[@]}" 1>&3 2>&4
+   echo "" 1>&3 2>&4
    EXT=1
 fi
 
@@ -101,12 +117,19 @@ if [ $EXT -eq 1 ]; then
    exit 0
 fi
 
-echo "generate and copy rsa key for master to slaves"
-ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
+echo -e '\nConfiguring ssh keys..' 1>&3 2>&4
+MACHINES=`cat $MLIST`
+MACHINENNUM=0
+for M in $MACHINES; do
+
+   echo "generate and copy rsa key for $M to master and peers" 1>&3 2>&4
+   ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$M "
+
     # copy to local user
+    rm -f ~/.ssh/id_rsa
     ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
     ssh-keyscan -H $MSTR >> ~/.ssh/known_hosts
-    sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
+    sshpass -p $PASS ssh-copy-id $USRNM@$M
 
     # copy to 0.0.0.0 and localhost
     ssh-keyscan -H 0.0.0.0 >> ~/.ssh/known_hosts
@@ -115,18 +138,35 @@ ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$MSTRADD "
     ssh-keyscan -H localhost >> ~/.ssh/known_hosts
     sshpass -p $PASS ssh-copy-id $USRNM@localhost
 
-
     # make all hosts (including slaves) known
-    ssh-keyscan -f /etc/hosts >> ~/.ssh/known_hosts
+    cat /etc/hosts > ~/hosts.txt
+    awk '{gsub(/[ \t]/,\"\n\")}1' ~/hosts.txt > ~/temp.txt && mv ~/temp.txt ~/hosts.txt
+    ssh-keyscan -f ~/hosts.txt >> ~/.ssh/known_hosts
+    rm ~/hosts.txt
 
-    # copy to slaves
-    s=1
-    while [[ \$s -le $NUMSLVS ]];
+    # copy to master
+    if [[ \$MACHINENNUM != 0 ]]
+    then
+        sshpass -p $PASS ssh-copy-id $USRNM@$MSTR
+    fi
+
+    # copy to peers
+    s=0
+    while [[ \$s -le $(( NUMSLVS )) ]];
     do
-	sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
-	s=\$((s+1))
+        if [[ \$MACHINENNUM != \$s ]]
+        then
+            sshpass -p $PASS ssh-copy-id $USRNM@$SLVPREFX-\$s
+        fi
+        s=\$((s+1))
     done
     chmod 0600 ~/.ssh/authorized_keys
-" < /dev/null
-echo "Done."
+    " < /dev/null
+    MACHINENNUM=$((MACHINENNUM+1))
 
+done
+
+echo -e "\nDone." 1>&3 2>&4
+echo -e "\nHopefully it worked :-#" 1>&3 2>&4
+
+exit 0
