@@ -9,6 +9,11 @@
 #
 #
 
+# Git Attributes:
+# git config --global core.editor "vim"
+# git config --global user.name "Anas Katib"
+# git config --global user.email anaskatib@mail.umkc.edu
+
 MSTR='ctl'
 SLVPREFX='cp'
 
@@ -161,7 +166,7 @@ for M in $MACHINES; do
     fi
 
     # copy to peers
-    s=0
+    s=1
     while [[ \$s -le $(( NUMSLVS )) ]];
     do
         if [[ \$MACHINENNUM != \$s ]]

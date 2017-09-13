@@ -1,9 +1,9 @@
 #!/bin/bash
 #==============================================================================
 #
-#          FILE:  script.sh
+#          FILE:  run-instance-setup.sh
 #
-#         USAGE:  ./run-instance-setup.sh -a <addresses-file> -k <key-file> -p <cluster-password>
+#         USAGE:  ./run-instance-setup.sh -a <addresses-file> -k <key-file> -u <cluster-username> -p <cluster-password>
 #
 #   DESCRIPTION:
 
@@ -21,7 +21,7 @@
 #   INSTITUTION:  University of Missouri-Kansas City
 #       VERSION:  1.0
 #       CREATED:  09/01/2017 11:30:00 AM CST
-#      REVISION:  ---
+#      REVISION:  09/13/2017 06:55:00 PM CST
 #
 #==============================================================================
 

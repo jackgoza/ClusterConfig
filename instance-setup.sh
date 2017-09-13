@@ -65,7 +65,7 @@
 #   INSTITUTION:  University of Missouri-Kansas City
 #       VERSION:  1.0
 #       CREATED:  06/14/2016 03:00:00 PM CST
-#      REVISION:  ---
+#      REVISION:  09/13/2017 06:55:00 PM CST
 #
 #==============================================================================
 # Refs:
@@ -94,7 +94,7 @@ MSTR='ctl'
 LRGDIR=/dev/data
 NUMREP=1
 SCALA_VER=2.11.8
-HADOOP_VER=2.7.3
+HADOOP_VER=2.7.4
 SPARK_VER=2.0.2
 SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
 
@@ -223,12 +223,50 @@ if [[ ($CUSTOM) ]] ; then
     sudo apt-get install scala --yes
 
     echo "DOWNLOADING HADOOP.."
-    HADOOP_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"hadoop/common/hadoop-$HADOOP_VER/hadoop-$HADOOP_VER.tar.gz"
-    curl -O $HADOOP_URL
+    # how many servers to try:
+    NUM_HSEV=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[]' | wc -l)
+    HSERV=0
+    ISZIP=""
+
+    while [ ${#ISZIP} -eq 0 ] && [ $HSERV -lt $NUM_HSEV ]
+    do
+        HADOOP_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output ".http[$HSERV]")"hadoop/common/hadoop-$HADOOP_VER/hadoop-$HADOOP_VER.tar.gz"
+        echo "  TRYING: "$HADOOP_URL
+        curl -O $HADOOP_URL &> /dev/null
+        HDFT=$(file hadoop-$HADOOP_VER*)
+        ISZIP=$(echo $HDFT | grep 'gzip compressed data')
+        HSERV=$((HSERV+1))
+    done
+
+    HDFT=$(file hadoop-$HADOOP_VER*)
+    IS_HZIP=$(echo $HDFT | grep 'gzip compressed data')
+    if [ ${#IS_HZIP} -eq 0 ]; then
+        echo 'ERROR: COULD NOT DOWNLOAD HADOOP '$HADOOP_VER
+        exit 1
+    fi
 
     echo "DOWNLOADING SPARK.."
-    SPARK_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[0]')"spark/spark-$SPARK_VER/spark-$SPARK_VER-bin-hadoop$SPARK_HDP_VER.tgz"
-    curl -O $SPARK_URL
+    # how many servers to try:
+    NUM_SSEV=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output '.http[]' | wc -l)
+    SSERV=0
+    ISZIP=""
+
+    while [ ${#ISZIP} -eq 0 ] && [ $SSERV -lt $NUM_SSEV ]
+    do
+        SPARK_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output ".http[$SSERV]")"spark/spark-$SPARK_VER/spark-$SPARK_VER-bin-hadoop$SPARK_HDP_VER.tgz"
+        echo "  TRYING: "$SPARK_URL
+        curl -O $SPARK_URL &> /dev/null
+        SFT=$(file spark-$SPARK_VER*)
+        ISZIP=$(echo $SFT | grep 'gzip compressed data')
+        SSERV=$((SSERV+1))
+    done
+
+    SFT=$(file spark-$SPARK_VER*)
+    IS_SZIP=$(echo $SFT | grep 'gzip compressed data')
+    if [ ${#IS_SZIP} -eq 0 ]; then
+        echo 'ERROR: COULD NOT DOWNLOAD SPARK '$SPARK_VER
+        exit 1
+    fi
 
     sudo tar xzf hadoop-$HADOOP_VER*gz -C /usr/local
     sudo tar xzf spark-$SPARK_VER*gz -C /usr/local
@@ -248,14 +286,14 @@ if [[ ($CUSTOM) ]] ; then
     if [[  $HSTNAME == *"$MSTR"* ]]; then
         echo "SETTING UP MASTER.."
         #sudo apt-get install libfreetype6-dev libpng-dev --yes
-        #sudo pip install matplotlib
+        #pip install matplotlib
 
         MSTRNAME=$HSTNAME
         touch /usr/local/spark/conf/slaves
         #echo "
         #spark.master                spark://$MSTRNAME:7077
-        #spark.driver.memory          50g
-        #spark.executor.memory        50g
+        #spark.driver.memory         50g
+        #spark.executor.memory       50g
         #spark.executor.cores        1
         #spark.submit.deployMode     cluster
         # spark.eventLog.dir         hdfs://$MSTR:8021/sparkEvntLg
