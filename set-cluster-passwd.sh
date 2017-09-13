@@ -15,8 +15,8 @@ SLVPREFX='cp'
 
 if [ "$#" -lt 5 ]; then
   echo ""
-  echo '      Usage: ./set-cluster-passwd.sh <cluster_addresses> <username> <password> <num_slaves> <private_key> [verbose: 0,1]'
-  echo -e "    Example: ./set-cluster-passwd.sh cluster-machines.txt anask myPa$$ 15 /Users/anask/.ssh/cloud_lab 0\n"
+  echo '      Usage: ./set-cluster-passwd.sh <cluster_addresses> <username> <password> <private_key> [verbose: 0 or 1]'
+  echo -e "    Example: ./set-cluster-passwd.sh cluster-machines.txt anask myPa$$ /Users/anask/.ssh/cloud_lab 0\n"
   echo "      Notes: - first line in <cluster-addresses> contains master node address."
   echo -e "             - $0 is using hard-coded names ($MSTR, $SLVPREFX).\n"
   exit 1
@@ -26,14 +26,13 @@ fi
 MLIST=$1
 USRNM=$2
 PASS=$3
-NUMSLVS=$4
-KEY=$5
+KEY=$4
 M=0
 MSTRADD=address
 NO_HSTFILE=()
 NO_HSTNM=()
 
-verbose=$6
+verbose=$5
 
 exec 3>&1
 exec 4>&2
@@ -45,7 +44,18 @@ else
   exec 2>/dev/null
 fi
 
+# remove white spaces, empty lines, and tabs
+sed 's/ //g' $MLIST > tmp.cm.1
+awk 'NF'  tmp.cm.1  > tmp.cm.2
+awk '{ gsub(/\t/, ""); print }' tmp.cm.2 > $MLIST
+rm tmp.cm.*
+
+NUMSLVS=$(wc -l < $MLIST | tr -d ' ') # how many machines
+NUMSLVS=$((NUMSLVS-1)) # subtract one for the master
+
 echo "Setting cluster password.." 1>&3 2>&4
+
+
 while read ADDR
 do
 
