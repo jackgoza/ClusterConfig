@@ -9,12 +9,12 @@ Prerequisite: upload your public key to CloudLab.
    with the master machine on the first line.
 
 Set up one password and ssh keys for a cluster of machines:
-./set-cluster-passwd.sh
+<br/>&#09;execute ./set-cluster-passwd.sh from your local machine.
 
 Set up a Hadoop and Spark cluster on these machines:
-<br/>execute ./instance-setup.sh on every machine.
-<br/>&nbsp;or
-<br/>execute ./run-instance-setup.sh from your local machine.
+<br/>&#09;execute ./instance-setup.sh on every machine.
+<br/>&#09;&#09;&nbsp;or
+<br/>&#09;execute ./run-instance-setup.sh from your local machine.
 
 Then follow the last notes printed on the master (or in CLSTR_README.txt).
 
