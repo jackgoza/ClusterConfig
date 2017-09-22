@@ -82,8 +82,8 @@ if [[  "$USER" == "root" ]]; then
 fi
 echo "OK"
 
+echo "RUNNING "$0 $@
 aparse "$@"
-
 
 echo -e "\nINITIALIZING SETUP.."
 
@@ -95,14 +95,14 @@ awk '{ gsub(/\t/, ""); print }' tmp.cm.2 > $ADDRESSES
 rm tmp.cm.*
 
 
-
 NUMSLVS=$(wc -l < $ADDRESSES | tr -d ' ') # how many machines
 NUMSLVS=$((NUMSLVS-1)) # subtract one for the master
 
+echo "SETTING UP A CLUSTER WITH "$NUMSLVS" SLAVES"
 while read ADDRESS ; do
      if [[ ! -z "${ADDRESS/ //}" ]]; then
         printf '\tSETTING UP %s\n' "$ADDRESS"
-        ssh -o "StrictHostKeyChecking no" -i $KEY $USR@$ADDRESS "~/instance-setup.sh -p $PASS -c NUMSLVS &> ~/setup-log.txt" &
+        ssh -o "StrictHostKeyChecking no" -i $KEY $USR@$ADDRESS "~/instance-setup.sh -p $PASS -c $NUMSLVS &> ~/setup-log.txt" &
      fi
 done < $ADDRESSES
 

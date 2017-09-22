@@ -20,3 +20,7 @@ Then follow the last notes printed on the master (or in CLSTR_README.txt).
 
 Designed for use with <a href="https://www.cloudlab.us/">CloudLab</a>.
 Tested on OpenStack Mitaka.
+<br/>
+<br/>
+Special thanks to <a href="https://github.com/debarron">debarron</a> and <a href="https://github.com/hastimal">hastimal"</a> for paving the way.
+

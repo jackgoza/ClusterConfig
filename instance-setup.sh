@@ -143,6 +143,7 @@ if [[  "$USER" == "root" ]]; then
 fi
 echo "OK"
 
+echo "RUNNING "$0 $@
 aparse "$@"
 set -e
 
