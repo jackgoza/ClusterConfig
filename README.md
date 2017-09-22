@@ -22,5 +22,5 @@ Designed for use with <a href="https://www.cloudlab.us/">CloudLab</a>.
 Tested on OpenStack Mitaka.
 <br/>
 <br/>
-Special thanks to <a href="https://github.com/debarron">debarron</a> and <a href="https://github.com/hastimal">hastimal"</a> for paving the way.
+Special thanks to <a href="https://github.com/debarron">debarron</a> and <a href="https://github.com/hastimal">hastimal</a> for paving the way.
 
