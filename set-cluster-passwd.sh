@@ -21,9 +21,10 @@ SLVPREFX='cp'
 if [ "$#" -lt 5 ]; then
   echo ""
   echo '      Usage: ./set-cluster-passwd.sh <cluster_addresses> <username> <password> <private_key> [verbose: 0 or 1]'
-  echo -e "    Example: ./set-cluster-passwd.sh cluster-machines.txt anask myPa$$ /Users/anask/.ssh/cloud_lab 0\n"
+  echo -e "    Example: ./set-cluster-passwd.sh cluster-machines.txt anask myPa$$ /Users/anask/.ssh/cloud_lab 1\n"
   echo "      Notes: - first line in <cluster-addresses> contains master node address."
-  echo -e "             - $0 is using hard-coded names ($MSTR, $SLVPREFX).\n"
+  echo -e "             - $0 is using hard-coded names ($MSTR, $SLVPREFX)."
+  echo -e "             - if script freezes press CTRL + C to terminate the running command.\n"
   exit 1
 fi
 
@@ -136,8 +137,9 @@ echo -e '\nConfiguring ssh keys..' 1>&3 2>&4
 MACHINES=`cat $MLIST`
 MACHINENNUM=0
 for M in $MACHINES; do
-
-   echo "generate and copy rsa key for $M to master and peers" 1>&3 2>&4
+   echo "--------------"
+   echo "Generate and copy rsa key for $M to master and peers" 1>&3 2>&4
+   echo "--------------"
    ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$M "
 
     # copy to local user
@@ -155,7 +157,10 @@ for M in $MACHINES; do
 
     # make all hosts (including slaves) known
     cat /etc/hosts > ~/hosts.txt
+    grep -i $(hostname) /etc/hosts | sort -n | sed '1d' | xargs -I X sed -e s/X//g -i ~/hosts.txt
+    sudo cp ~/hosts.txt /etc/hosts
     awk '{gsub(/[ \t]/,\"\n\")}1' ~/hosts.txt > ~/temp.txt && mv ~/temp.txt ~/hosts.txt
+	
     ssh-keyscan -f ~/hosts.txt >> ~/.ssh/known_hosts
     rm ~/hosts.txt
 
