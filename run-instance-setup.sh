@@ -106,7 +106,9 @@ while read ADDRESS ; do
      fi
 done < $ADDRESSES
 
-echo "WAITING FOR SETUP TO FINISH.."
+echo -e "\nRUN THE FOLLOWING COMMAND IN ANOTHER WINDOW TO CHECK THE STATUS OF EACH NODE:\n-------------------\nwhile read m; do echo -n $m: && ssh $m 'tail -n 1 setup-log.txt' < /dev/null ; done < cluster-machines.txt \n-------------------"
+
+echo -e "\nWAITING FOR SETUP TO FINISH.."
 wait
 
 
