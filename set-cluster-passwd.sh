@@ -140,6 +140,8 @@ for M in $MACHINES; do
    echo "--------------"
    echo "Generate and copy rsa key for $M to master and peers" 1>&3 2>&4
    echo "--------------"
+
+   ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$M 'hostname > ~/hostname.txt'
    ssh -o "StrictHostKeyChecking no" -i $KEY  $USRNM@$M "
 
     # copy to local user
@@ -157,10 +159,13 @@ for M in $MACHINES; do
 
     # make all hosts (including slaves) known
     cat /etc/hosts > ~/hosts.txt
-    grep -i $(hostname) /etc/hosts | sort -n | sed '1d' | xargs -I X sed -e s/X//g -i ~/hosts.txt
+    cat /etc/hosts > ~/back-up.hosts.txt
+    grep -i -f ~/hostname.txt /etc/hosts | sort -n | sed '1d' | xargs -I X sed -e s/X//g -i ~/hosts.txt
     sudo cp ~/hosts.txt /etc/hosts
     awk '{gsub(/[ \t]/,\"\n\")}1' ~/hosts.txt > ~/temp.txt && mv ~/temp.txt ~/hosts.txt
-	
+    mv ~/temp.txt ~/hosts.txt
+
+
     ssh-keyscan -f ~/hosts.txt >> ~/.ssh/known_hosts
     rm ~/hosts.txt
 
