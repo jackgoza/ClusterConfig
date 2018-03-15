@@ -124,7 +124,7 @@ while [[ $# > 0 ]] ; do
       ;;
     -c)
       CUSTOM=true
-      ;
+      ;;
   esac
   shift
 done
