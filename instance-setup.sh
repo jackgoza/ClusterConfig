@@ -94,7 +94,7 @@ LRGDIR=/dev/data
 NUMREP=1
 SCALA_VER=2.11.8
 HADOOP_VER=2.7.5
-SPARK_VER=2.0.2
+SPARK_VER=2.1.2
 SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
 
 function usage {
