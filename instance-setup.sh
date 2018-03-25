@@ -85,7 +85,6 @@
 # su $USER
 #==============================================================================
 
-
 scriptname=$0
 NSLVS=$4
 USRGRP=$(groups | cut -d ' ' -f1)
@@ -94,8 +93,8 @@ MSTR='ctl'
 LRGDIR=/dev/data
 NUMREP=1
 SCALA_VER=2.11.8
-HADOOP_VER=2.7.4
-SPARK_VER=2.0.2
+HADOOP_VER=2.7.5
+SPARK_VER=2.1.2
 SPARK_HDP_VER=$(echo $HADOOP_VER | cut -d '.' -f1-2)
 
 function usage {
@@ -233,7 +232,7 @@ if [[ ($CUSTOM) ]] ; then
     do
         HADOOP_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output ".http[$HSERV]")"hadoop/common/hadoop-$HADOOP_VER/hadoop-$HADOOP_VER.tar.gz"
         echo "  TRYING: "$HADOOP_URL
-        curl -O $HADOOP_URL &> /dev/null
+        wget $HADOOP_URL &> /dev/null
         HDFT=$(file hadoop-$HADOOP_VER*)
         ISZIP=$(echo $HDFT | grep 'gzip compressed data')
         HSERV=$((HSERV+1))
@@ -256,7 +255,7 @@ if [[ ($CUSTOM) ]] ; then
     do
         SPARK_URL=$(curl -s 'http://www.apache.org/dyn/closer.cgi?as_json=1' | jq --raw-output ".http[$SSERV]")"spark/spark-$SPARK_VER/spark-$SPARK_VER-bin-hadoop$SPARK_HDP_VER.tgz"
         echo "  TRYING: "$SPARK_URL
-        curl -O $SPARK_URL &> /dev/null
+        wget $SPARK_URL &> /dev/null
         SFT=$(file spark-$SPARK_VER*)
         ISZIP=$(echo $SFT | grep 'gzip compressed data')
         SSERV=$((SSERV+1))
@@ -269,6 +268,8 @@ if [[ ($CUSTOM) ]] ; then
         exit 1
     fi
 
+    echo "UNTARRING HADOOP AND SPARK"
+
     sudo tar xzf hadoop-$HADOOP_VER*gz -C /usr/local
     sudo tar xzf spark-$SPARK_VER*gz -C /usr/local
 
@@ -277,6 +278,8 @@ if [[ ($CUSTOM) ]] ; then
     sudo mv spark-$SPARK_VER* spark
     sudo mkdir -p $LRGDIR/hadoop
 
+    echo "SETTING PERMISSIONS..."
+    
     sudo chown -R $USER:$USRGRP  /usr/local/hadoop
     sudo chown -R $USER:$USRGRP  /usr/local/spark
     sudo chown -R $USER:$USRGRP  $LRGDIR
@@ -328,6 +331,8 @@ if [[ ($CUSTOM) ]] ; then
             </property>
         </configuration>
     	' > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+    	
+	git clone https://github.com/spexican924/spark-tpc-ds-performance-test 
     else
         echo "SETTING UP SLAVE.."
         mkdir /usr/local/hadoop/hadoop_data/hdfs/datanode
@@ -403,6 +408,8 @@ if [[ ($CUSTOM) ]] ; then
             </property>
     </configuration>
     ' > /usr/local/hadoop/etc/hadoop/yarn-site.xml
+
+    echo "CRAFTING BASH ALIASES"
 
     echo "# Hadoop Variables"  >> $HOME/.bashrc
     echo "export JAVA_HOME=/usr/lib/jvm/default-java"  >> $HOME/.bashrc
