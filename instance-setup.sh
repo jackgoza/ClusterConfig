@@ -268,6 +268,8 @@ if [[ ($CUSTOM) ]] ; then
         exit 1
     fi
 
+    echo "UNTARRING HADOOP AND SPARK"
+
     sudo tar xzf hadoop-$HADOOP_VER*gz -C /usr/local
     sudo tar xzf spark-$SPARK_VER*gz -C /usr/local
 
@@ -276,6 +278,8 @@ if [[ ($CUSTOM) ]] ; then
     sudo mv spark-$SPARK_VER* spark
     sudo mkdir -p $LRGDIR/hadoop
 
+    echo "SETTING PERMISSIONS..."
+    
     sudo chown -R $USER:$USRGRP  /usr/local/hadoop
     sudo chown -R $USER:$USRGRP  /usr/local/spark
     sudo chown -R $USER:$USRGRP  $LRGDIR
@@ -328,7 +332,7 @@ if [[ ($CUSTOM) ]] ; then
         </configuration>
     	' > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
     	
-	git clone https://github.com/intel-hadoop/HiBench.git ~/HiBench
+	git clone https://github.com/spexican924/spark-tpc-ds-performance-test 
     else
         echo "SETTING UP SLAVE.."
         mkdir /usr/local/hadoop/hadoop_data/hdfs/datanode
@@ -404,6 +408,8 @@ if [[ ($CUSTOM) ]] ; then
             </property>
     </configuration>
     ' > /usr/local/hadoop/etc/hadoop/yarn-site.xml
+
+    echo "CRAFTING BASH ALIASES"
 
     echo "# Hadoop Variables"  >> $HOME/.bashrc
     echo "export JAVA_HOME=/usr/lib/jvm/default-java"  >> $HOME/.bashrc
