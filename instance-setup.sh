@@ -330,9 +330,7 @@ if [[ ($CUSTOM) ]] ; then
               <value>false</value>
             </property>
         </configuration>
-    	' > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
-    	
-	git clone https://github.com/spexican924/spark-tpc-ds-performance-test 
+    	' > /usr/local/hadoop/etc/hadoop/hdfs-site.xml    	
     else
         echo "SETTING UP SLAVE.."
         mkdir /usr/local/hadoop/hadoop_data/hdfs/datanode
